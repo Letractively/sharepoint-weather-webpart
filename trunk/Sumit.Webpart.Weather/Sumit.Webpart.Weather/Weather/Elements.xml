@@ -1,0 +1,8 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Elements xmlns="http://schemas.microsoft.com/sharepoint/" >
+  <Module Name="Weather" List="113" Url="_catalogs/wp">
+    <File Path="Weather\Weather.webpart" Url="Weather.webpart" Type="GhostableInLibrary" >
+      <Property Name="Group" Value="Sumit" />
+    </File>
+  </Module>
+</Elements>
