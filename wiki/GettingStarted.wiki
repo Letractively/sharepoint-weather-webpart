@@ -1,4 +1,4 @@
-#summary One-sentence summary of this page.
+#summary Guides through the installation of the Weather Web-Part.
 
 = Introduction =
 
@@ -9,3 +9,15 @@ This guide will help you in installing and configuring the weather web-part step
   * !SharePoint 2010 Environment
 
 = Step 1: Installing Solution =
+
+  * [http://code.google.com/p/sharepoint-weather-webpart/downloads/list Download] WSP and unzip the Weather Web-Part archive. This contains the WSP file, deploy solution batch file, upgrade solution batch file and retract solution batch file
+  * Edit the batch file and update the server URL property on which want to install the package
+https://sharepoint-weather-webpart.googlecode.com/svn/wiki/Images/deployURL.jpg
+  * Right click on the Deploy file and select the "Run as administrator" option
+https://sharepoint-weather-webpart.googlecode.com/svn/wiki/Images/Install.jpg
+  * This will add the solution in the solution gallery
+https://sharepoint-weather-webpart.googlecode.com/svn/wiki/Images/Solution.jpg
+  * This will also deploy the feature in site collection features gallery on specified web portal url
+
+
+  * [http://code.google.com/p/sharepoint-weather-webpart/wiki/Configuration Configure] your webpart
