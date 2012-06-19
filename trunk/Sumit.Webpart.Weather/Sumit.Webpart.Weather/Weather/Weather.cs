@@ -7,6 +7,8 @@ using System.Web.UI.WebControls.WebParts;
 using Microsoft.SharePoint;
 using Microsoft.SharePoint.WebControls;
 using Microsoft.SharePoint.WebPartPages;
+using System.Xml.Linq;
+using System.Xml;
 
 namespace Sumit.Webpart.Weather.Weather
 {
@@ -25,6 +27,26 @@ namespace Sumit.Webpart.Weather.Weather
 
 
         #region WebPart Properties
+
+
+        public static bool _autoLoc = true;
+        [WebBrowsable(true),
+        WebDisplayName("Automatically Detect Location"),
+        Personalizable(PersonalizationScope.Shared),
+        WebPartStorage(Storage.Shared),
+        WebDescription("Check if want to detect the location automatically"),
+        Category("Weather WebPart Settings")]
+        public bool AutoLoc
+        {
+            get
+            {
+                return _autoLoc;
+            }
+            set
+            {
+                _autoLoc = value;
+            }
+        }
 
         public static string _cityName = "Agra , U.P , India";
         [WebBrowsable(true),
@@ -215,11 +237,92 @@ namespace Sumit.Webpart.Weather.Weather
             {
                 Control control = Page.LoadControl(_ascxPath);
                 Controls.Add(control);
+
+                if (_autoLoc)
+                {
+                    SaveAutoLoc();
+                }
+
             }
             catch (Exception ex)
             {
                
             }
+        }
+
+        /// <summary>
+        /// Save the auto located location in the webpart settings
+        /// </summary>
+        private void SaveAutoLoc()
+        {
+            string[] Location = GetLocation();
+
+            using (SPSite objSite = new SPSite(SPContext.Current.Site.Url))
+            {
+                using (SPWeb objWeb = objSite.OpenWeb())
+                {
+                    SPFile objPage = objWeb.GetFile(HttpContext.Current.Request.Url.ToString());
+                    SPLimitedWebPartManager mgr = objPage.GetLimitedWebPartManager(PersonalizationScope.Shared);
+                    System.Web.UI.WebControls.WebParts.WebPart objWebPart = mgr.WebParts[this.ID];
+
+                    if (objWebPart != null)
+                    {
+                        //((BrickRed.Templates.SmallBusiness.LocationWebPart.LocationWebPart)(objWebPart.WebBrowsableObject)).CityName = this.Lattitude;
+                        //mgr.SaveChanges(objWebPart);
+                    }
+                }
+            }
+        }
+
+
+        /// <summary>
+        /// Gets the location of the client, retrieved from the URL http://api.hostip.info/
+        /// </summary>
+        /// <returns></returns>
+        private string[] GetLocation()
+        {
+            string[] Location = null;
+            string url = "http://api.hostip.info/";
+            XDocument xDoc=null;
+
+            try
+            {
+                //get the XML from the URL
+                xDoc = XDocument.Load(url);
+            }
+            catch (Exception ex)
+            {
+                throw new SPException("Could not retrieve location from http://api.hostip.info/ ",ex.InnerException);
+            }
+            if (xDoc == null || xDoc.Root == null)
+            {
+                throw new SPException("Could not retrieve location from http://api.hostip.info/ ");
+            }
+            else
+            {
+                XmlDocument xmlDoc = new XmlDocument();
+                xmlDoc.LoadXml(xDoc.ToString());
+
+                foreach (XmlNode objNode in xmlDoc.ChildNodes[0].ChildNodes)
+                {
+                    if (objNode.Name.ToLower().Equals("gml:featuremember"))
+                    {
+                        foreach (XmlNode NodeHostIP in objNode.ChildNodes)
+                        {
+                            if (NodeHostIP.Name.ToLower().Equals("hostip"))
+                            {
+                                foreach (XmlNode NodeInfo in NodeHostIP.ChildNodes)
+                                {
+                                    if (NodeInfo.Name.ToLower().Equals("ip")) { Location[0] = NodeInfo.InnerText.ToString(); }
+                                    else if (NodeInfo.Name.ToLower().Equals("gml:name")) { Location[1] = NodeInfo.InnerText.ToString(); }
+                                    else if (NodeInfo.Name.ToLower().Equals("countryname")) { Location[2] = NodeInfo.InnerText.ToString(); }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return Location;
         }
     }
 }
