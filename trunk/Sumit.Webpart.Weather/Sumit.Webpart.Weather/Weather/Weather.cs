@@ -235,18 +235,17 @@ namespace Sumit.Webpart.Weather.Weather
         {
             try
             {
-                Control control = Page.LoadControl(_ascxPath);
-                Controls.Add(control);
-
-                if (_autoLoc)
+                if (this.AutoLoc)
                 {
                     SaveAutoLoc();
                 }
 
+                Control control = Page.LoadControl(_ascxPath);
+                Controls.Add(control);
             }
             catch (Exception ex)
             {
-               
+                throw (new SPException(ex.Message));
             }
         }
 
@@ -255,7 +254,8 @@ namespace Sumit.Webpart.Weather.Weather
         /// </summary>
         private void SaveAutoLoc()
         {
-            string[] Location = GetLocation();
+            String[] Location = new String[4];
+            Location = GetLocation();
 
             using (SPSite objSite = new SPSite(SPContext.Current.Site.Url))
             {
@@ -267,8 +267,8 @@ namespace Sumit.Webpart.Weather.Weather
 
                     if (objWebPart != null)
                     {
-                        //((BrickRed.Templates.SmallBusiness.LocationWebPart.LocationWebPart)(objWebPart.WebBrowsableObject)).CityName = this.Lattitude;
-                        //mgr.SaveChanges(objWebPart);
+                        ((Sumit.Webpart.Weather.Weather.Weather)(objWebPart.WebBrowsableObject)).CityName = Location[1] + " , " + Location[2];
+                        mgr.SaveChanges(objWebPart);
                     }
                 }
             }
@@ -281,7 +281,7 @@ namespace Sumit.Webpart.Weather.Weather
         /// <returns></returns>
         private string[] GetLocation()
         {
-            string[] Location = null;
+            string[] Location = new String[4];
             string url = "http://api.hostip.info/";
             XDocument xDoc=null;
 
@@ -292,11 +292,11 @@ namespace Sumit.Webpart.Weather.Weather
             }
             catch (Exception ex)
             {
-                throw new SPException("Could not retrieve location from http://api.hostip.info/ ",ex.InnerException);
+                throw (new SPException("Could not retrieve location from http://api.hostip.info/ ",ex.InnerException));
             }
             if (xDoc == null || xDoc.Root == null)
             {
-                throw new SPException("Could not retrieve location from http://api.hostip.info/ ");
+                throw (new SPException("Could not retrieve location from http://api.hostip.info/ "));
             }
             else
             {
