@@ -67,7 +67,7 @@ namespace Sumit.Webpart.Weather.Weather
             }
         }
 
-        
+
 
         public static bool _condition = true;
         [WebBrowsable(true),
@@ -226,7 +226,9 @@ namespace Sumit.Webpart.Weather.Weather
         //    }
         //}
 
-        public static string ErroMessage { get; set; }
+        public static string ErrorMessage { get; set; }
+
+        public static bool IsError { get; set; }
 
         #endregion
 
@@ -235,6 +237,7 @@ namespace Sumit.Webpart.Weather.Weather
         {
             try
             {
+                IsError = false;
                 if (this.AutoLoc)
                 {
                     SaveAutoLoc();
@@ -242,6 +245,16 @@ namespace Sumit.Webpart.Weather.Weather
 
                 Control control = Page.LoadControl(_ascxPath);
                 Controls.Add(control);
+
+                if (IsError && !string.IsNullOrEmpty(ErrorMessage))
+                {
+                    Label Errorlbl = new Label();
+                    Errorlbl.Text = ErrorMessage;
+                    Errorlbl.CssClass = "colr";
+                    this.Controls.Add(Errorlbl);
+                    IsError = false;
+                    ErrorMessage = string.Empty;
+                }
             }
             catch (Exception ex)
             {
@@ -267,7 +280,11 @@ namespace Sumit.Webpart.Weather.Weather
 
                     if (objWebPart != null)
                     {
-                        ((Sumit.Webpart.Weather.Weather.Weather)(objWebPart.WebBrowsableObject)).CityName = Location[1] + " , " + Location[2];
+                        if (Location[1] == null && Location[2] == null)
+                            ((Sumit.Webpart.Weather.Weather.Weather)(objWebPart.WebBrowsableObject)).CityName = null;
+                        else
+                            ((Sumit.Webpart.Weather.Weather.Weather)(objWebPart.WebBrowsableObject)).CityName = Location[1] + " , " + Location[2];
+                        
                         mgr.SaveChanges(objWebPart);
                     }
                 }
@@ -283,7 +300,7 @@ namespace Sumit.Webpart.Weather.Weather
         {
             string[] Location = new String[4];
             string url = "http://api.hostip.info/";
-            XDocument xDoc=null;
+            XDocument xDoc = null;
 
             try
             {
@@ -292,13 +309,12 @@ namespace Sumit.Webpart.Weather.Weather
             }
             catch (Exception ex)
             {
-                throw (new SPException("Could not retrieve location from http://api.hostip.info/ ",ex.InnerException));
+                ErrorMessage = "Could not retrieve location from http://api.hostip.info/ ";
+                IsError = true;
+                //throw (new SPException("Could not retrieve location from http://api.hostip.info/ ", ex.InnerException));
             }
-            if (xDoc == null || xDoc.Root == null)
-            {
-                throw (new SPException("Could not retrieve location from http://api.hostip.info/ "));
-            }
-            else
+            
+            if(xDoc != null || xDoc.Root != null)
             {
                 XmlDocument xmlDoc = new XmlDocument();
                 xmlDoc.LoadXml(xDoc.ToString());
@@ -314,8 +330,20 @@ namespace Sumit.Webpart.Weather.Weather
                                 foreach (XmlNode NodeInfo in NodeHostIP.ChildNodes)
                                 {
                                     if (NodeInfo.Name.ToLower().Equals("ip")) { Location[0] = NodeInfo.InnerText.ToString(); }
-                                    else if (NodeInfo.Name.ToLower().Equals("gml:name")) { Location[1] = NodeInfo.InnerText.ToString(); }
-                                    else if (NodeInfo.Name.ToLower().Equals("countryname")) { Location[2] = NodeInfo.InnerText.ToString(); }
+                                    else if (NodeInfo.Name.ToLower().Equals("gml:name"))
+                                    {
+                                        if (NodeInfo.InnerText.ToString().ToLower().Contains("unknown"))
+                                            Location[1] = null;
+                                        else
+                                            Location[1] = NodeInfo.InnerText.ToString();
+                                    }
+                                    else if (NodeInfo.Name.ToLower().Equals("countryname"))
+                                    {
+                                        if (NodeInfo.InnerText.ToString().ToLower().Contains("unknown"))
+                                            Location[2] = null;
+                                        else
+                                            Location[2] = NodeInfo.InnerText.ToString();
+                                    }
                                 }
                             }
                         }

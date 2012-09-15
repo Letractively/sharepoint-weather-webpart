@@ -29,111 +29,149 @@ namespace Sumit.Webpart.Weather.Weather
                 }
                 catch
                 {
-                    ErrorMessage.Text = "Cannot retrieve the City name, please check if the spelling is correct or try to add the state and country name";
-                    ErrorMessage.Visible = true;
-                    ErrorMessage.ForeColor = System.Drawing.Color.Red;
+                    Weather.ErrorMessage = "Cannot retrieve the City name, please check if the spelling is correct or try to add the state and country name";
+                    DisplayError();
                 }
 
                 if (weather != null)
                 {
-                    //display location
-                    LocationName.Text = weather.ForecastInformation.City;
+                    if (CheckWeatherRetrieved(weather))
+                    {
+                        //display location
+                        LocationName.Text = weather.ForecastInformation.City;
 
-                    //display Temperature
-                    if (Weather._unitTemperature.ToString().Equals("Celsius"))
-                    {
-                        TempValue.Text = Convert.ToString((weather.CurrentConditions.Temperature).Celsius);
-                        TempUnit.Text = "&deg;C";
-                    }
-                    else
-                    {
-                        TempValue.Text = Convert.ToString((weather.CurrentConditions.Temperature).Fahrenheit);
-                        TempUnit.Text = "&deg;F";
-                    }
-
-                    //Display Day and Date
-                    Day.Text = "Today";
-                    Date.Text = DateTime.Today.ToShortDateString();
-
-                    if (Weather._condition)
-                    {
-                        ConditionText.Visible = true;
-                        ConditionValue.Visible = true;
-                        ConditionValue.Text = weather.CurrentConditions.Condition;
-                    }
-                    if (Weather._conditionImage)
-                    {
-                        imgCond.Visible = true;
-                        imgCond.ImageUrl = "http://www.google.com/" + weather.CurrentConditions.Icon;
-                        imgCond.ImageAlign = ImageAlign.Middle;
-                    }
-                    if (Weather._high)
-                    {
-                        TempHighText.Visible = true;
-                        TempHighValue.Visible = true;
-
+                        //display Temperature
                         if (Weather._unitTemperature.ToString().Equals("Celsius"))
                         {
-                            TempHighValue.Text = Convert.ToString(weather.ForecastConditions[0].High.Celsius).Split('.')[0] + "&deg;C";
+                            TempValue.Text = Convert.ToString((weather.CurrentConditions.Temperature).Celsius);
+                            TempUnit.Text = "&deg;C";
                         }
                         else
                         {
-                            TempHighValue.Text = Convert.ToString(weather.ForecastConditions[0].High.Fahrenheit).Split('.')[0] + "&deg;F";
+                            TempValue.Text = Convert.ToString((weather.CurrentConditions.Temperature).Fahrenheit);
+                            TempUnit.Text = "&deg;F";
                         }
 
-                    }
-                    if (Weather._low)
-                    {
-                        TempLowText.Visible = true;
-                        TempLowValue.Visible = true;
+                        //Display Day and Date
+                        Day.Text = "Today";
+                        Date.Text = DateTime.Today.ToShortDateString();
 
-                        if (Weather._unitTemperature.ToString().Equals("Celsius"))
+                        if (Weather._condition)
                         {
-                            TempLowValue.Text = Convert.ToString(weather.ForecastConditions[0].Low.Celsius).Split('.')[0] + "&deg;C";
+                            ConditionText.Visible = true;
+                            ConditionValue.Visible = true;
+                            ConditionValue.Text = weather.CurrentConditions.Condition;
                         }
-                        else
+                        if (Weather._conditionImage)
                         {
-                            TempLowValue.Text = Convert.ToString(weather.ForecastConditions[0].Low.Fahrenheit).Split('.')[0] + "&deg;F";
+                            imgCond.Visible = true;
+                            imgCond.ImageUrl = "http://www.google.com/" + weather.CurrentConditions.Icon;
+                            imgCond.ImageAlign = ImageAlign.Middle;
                         }
+                        if (Weather._high)
+                        {
+                            TempHighText.Visible = true;
+                            TempHighValue.Visible = true;
+
+                            if (Weather._unitTemperature.ToString().Equals("Celsius"))
+                            {
+                                TempHighValue.Text = Convert.ToString(weather.ForecastConditions[0].High.Celsius).Split('.')[0] + "&deg;C";
+                            }
+                            else
+                            {
+                                TempHighValue.Text = Convert.ToString(weather.ForecastConditions[0].High.Fahrenheit).Split('.')[0] + "&deg;F";
+                            }
+
+                        }
+                        if (Weather._low)
+                        {
+                            TempLowText.Visible = true;
+                            TempLowValue.Visible = true;
+
+                            if (Weather._unitTemperature.ToString().Equals("Celsius"))
+                            {
+                                TempLowValue.Text = Convert.ToString(weather.ForecastConditions[0].Low.Celsius).Split('.')[0] + "&deg;C";
+                            }
+                            else
+                            {
+                                TempLowValue.Text = Convert.ToString(weather.ForecastConditions[0].Low.Fahrenheit).Split('.')[0] + "&deg;F";
+                            }
+                        }
+                        if (Weather._humidity)
+                        {
+                            HumidityText.Visible = true;
+                            HumidityValue.Visible = true;
+
+                            HumidityValue.Text = weather.CurrentConditions.Humidity.ToLower().Remove(0, 10);
+                        }
+                        if (Weather._wind)
+                        {
+                            WindText.Visible = true;
+                            WindValue.Visible = true;
+
+                            WindValue.Text = weather.CurrentConditions.WindCondition.Remove(0, 6);
+                        }
+
+                        #region Forecast to be implementd
+
+                        //int forecastDays = Convert.ToInt32(Weather._forecast);
+
+                        //if (forecastDays > 0)
+                        //{
+                        //    string forecastHtml = string.Empty;
+                        //    for (int i = 1; i <= forecastDays; i++)
+                        //    {
+                        //        forecastHtml = forecastHtml + CreateForecastHtml(weather.ForecastConditions[i], i);
+                        //    }
+
+                        //    //Serialize string to pass to the javascript
+                        //    string serialized = (new JavaScriptSerializer()).Serialize(forecastHtml);
+                        //    serialized = serialized.Remove(0, 1);
+                        //    serialized = serialized.Remove(serialized.LastIndexOf('"'), 1);
+
+                        //    this.Page.ClientScript.RegisterStartupScript(this.GetType(), "ShowForecastWeather", "ShowForecastWeather('" + serialized + "');", true);
+
+                        //}
+                        #endregion
                     }
-                    if (Weather._humidity)
-                    {
-                        HumidityText.Visible = true;
-                        HumidityValue.Visible = true;
-
-                        HumidityValue.Text = weather.CurrentConditions.Humidity.ToLower().Remove(0, 10);
-                    }
-                    if (Weather._wind)
-                    {
-                        WindText.Visible = true;
-                        WindValue.Visible = true;
-
-                        WindValue.Text = weather.CurrentConditions.WindCondition.Remove(0, 6);
-                    }
-
-                    #region Forecast to be implementd
-
-                    //int forecastDays = Convert.ToInt32(Weather._forecast);
-
-                    //if (forecastDays > 0)
-                    //{
-                    //    string forecastHtml = string.Empty;
-                    //    for (int i = 1; i <= forecastDays; i++)
-                    //    {
-                    //        forecastHtml = forecastHtml + CreateForecastHtml(weather.ForecastConditions[i], i);
-                    //    }
-
-                    //    //Serialize string to pass to the javascript
-                    //    string serialized = (new JavaScriptSerializer()).Serialize(forecastHtml);
-                    //    serialized = serialized.Remove(0, 1);
-                    //    serialized = serialized.Remove(serialized.LastIndexOf('"'), 1);
-
-                    //    this.Page.ClientScript.RegisterStartupScript(this.GetType(), "ShowForecastWeather", "ShowForecastWeather('" + serialized + "');", true);
-
-                    //}
-                    #endregion
                 }
             }
+            else
+            {
+                Weather.ErrorMessage = "Cannot Auto retrieve the City name, please check your internet connection or Uncheck the Auto Location check box enter the enter location manually by editing the webpart";
+                DisplayError();
+            }
+        }
+
+        /// <summary>
+        /// Checks if the weather has retrieved the data
+        /// </summary>
+        /// <param name="weather"></param>
+        /// <returns></returns>
+        private bool CheckWeatherRetrieved(GoogleWeatherData weather)
+        {
+            if (weather.CurrentConditions.Condition != null &&
+                weather.CurrentConditions.Humidity != null &&
+                weather.CurrentConditions.Temperature != null &&
+                weather.CurrentConditions.WindCondition != null)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Displays the Error Message
+        /// </summary>
+        private void DisplayError()
+        {
+            ErrorMessage.Text = Weather.ErrorMessage;
+            ErrorMessage.Visible = true;
+            ErrorMessage.ForeColor = System.Drawing.Color.Red;
+            Weather.ErrorMessage = string.Empty;
         }
 
         //private string CreateForecastHtml(ForecastCondition forecastCondition, int addDay)
