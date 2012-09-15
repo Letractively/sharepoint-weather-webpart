@@ -200,4 +200,8 @@
         padding-bottom:5px;
         width: 40px;
     }
+    .colr
+    {
+        color: Red;
+    }
 </style>
