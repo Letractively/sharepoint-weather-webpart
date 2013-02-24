@@ -19,7 +19,7 @@ namespace Sumit.Webpart.Weather.Weather
         private const string _ascxPath = @"~/_CONTROLTEMPLATES/Sumit.Webpart.Weather/Weather/WeatherUserControl.ascx";
 
 
-        public enum TempUnit
+        public enum TempUnitType
         {
             Celsius = 0,
             Fahrenheit
@@ -48,7 +48,7 @@ namespace Sumit.Webpart.Weather.Weather
             }
         }
 
-        public static string _cityName = "Agra , U.P , India";
+        public static string _cityName = "Agra, India";
         [WebBrowsable(true),
         WebDisplayName("City , State , Country"),
         Personalizable(PersonalizationScope.Shared),
@@ -146,14 +146,14 @@ namespace Sumit.Webpart.Weather.Weather
             }
         }
 
-        public static TempUnit _unitTemperature = TempUnit.Celsius;
+        public static TempUnitType _unitTemperature = TempUnitType.Celsius;
         [WebBrowsable(true),
         WebDisplayName("Unit For Temperature"),
         Personalizable(PersonalizationScope.Shared),
         WebPartStorage(Storage.Shared),
         WebDescription("Select the temperature unit"),
         Category("Weather WebPart Settings")]
-        public TempUnit UnitTemperature
+        public TempUnitType UnitTemperature
         {
             get
             {
@@ -203,28 +203,24 @@ namespace Sumit.Webpart.Weather.Weather
             }
         }
 
-        //public static string _forecast = "0";
-        //[WebBrowsable(true),
-        //WebDisplayName("Display Forecast (Enter number of days between 0 and 3)"),
-        //Personalizable(PersonalizationScope.Shared),
-        //WebPartStorage(Storage.Shared),
-        //WebDescription("Select the number of forecast days"),
-        //Category("Weather WebPart Settings")]
-        //public string Forecast
-        //{
-        //    get
-        //    {
-        //        return _forecast;
-        //    }
-        //    set
-        //    {
-        //        if (Convert.ToInt32(value) > 3)
-        //        {
-        //            throw new WebPartPageUserException("Limit for forecast days is 0-3");
-        //        }
-        //        _forecast = value;
-        //    }
-        //}
+        public static bool _updateInfo = true;
+        [WebBrowsable(true),
+        WebDisplayName("Show last update info"),
+        Personalizable(PersonalizationScope.Shared),
+        WebPartStorage(Storage.Shared),
+        WebDescription("Check if want to show last update info"),
+        Category("Weather WebPart Settings")]
+        public bool UpdateInfo
+        {
+            get
+            {
+                return _updateInfo;
+            }
+            set
+            {
+                _updateInfo = value;
+            }
+        }
 
         public static string ErrorMessage { get; set; }
 
@@ -268,6 +264,7 @@ namespace Sumit.Webpart.Weather.Weather
         private void SaveAutoLoc()
         {
             String[] Location = new String[4];
+
             Location = GetLocation();
 
             using (SPSite objSite = new SPSite(SPContext.Current.Site.Url))
@@ -311,7 +308,6 @@ namespace Sumit.Webpart.Weather.Weather
             {
                 ErrorMessage = "Could not retrieve location from http://api.hostip.info/ ";
                 IsError = true;
-                //throw (new SPException("Could not retrieve location from http://api.hostip.info/ ", ex.InnerException));
             }
             
             if(xDoc != null || xDoc.Root != null)

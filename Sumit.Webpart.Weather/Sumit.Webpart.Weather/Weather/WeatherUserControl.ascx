@@ -9,18 +9,6 @@
     Assembly="Microsoft.SharePoint, Version=14.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c" %>
 <%@ Control Language="C#" AutoEventWireup="true" CodeBehind="WeatherUserControl.ascx.cs"
     Inherits="Sumit.Webpart.Weather.Weather.WeatherUserControl" %>
-<%--<div id="dv" class="brdr" runat="server">
-<div>
-<asp:Label ID="CityNamelbl" runat="server" CssClass="CityName"></asp:Label><br />
-</div>
-<div style="color:Black; margin-top:5px;">
-    <asp:Image ID="CurrentWeatherImage" runat="server" ImageUrl="#" Visible="false" CssClass="Image" />
-        <asp:Label ID="CurrentCondition" runat="server" Style="font-weight: bold" CssClass="margin" ></asp:Label><br />
-        <asp:Label ID="CurrentHumidity" runat="server" CssClass="margin"></asp:Label><br />
-        <asp:Label ID="CurrentWindCondition" runat="server" CssClass="margin"></asp:Label><br />
-        <asp:Label ID="CurrentTemp" runat="server" CssClass="margin"></asp:Label><br />
-    </div>
-</div>--%>
 <div class="outdv" id="outdv">
     <table width="100%">
         <tr>
@@ -29,8 +17,8 @@
                     <asp:Label ID="LocationName" runat="server"></asp:Label>
                 </div>
                 <div class="temp">
-                    <asp:Label ID="TempValue" runat="server"></asp:Label>
-                    <asp:Label ID="TempUnit" runat="server"></asp:Label>
+                    <asp:Label ID="lblTempValue" runat="server"></asp:Label>
+                    <asp:Label ID="lblTempUnit" runat="server"></asp:Label>
                 </div>
             </td>
         </tr>
@@ -124,14 +112,17 @@
                     </table>
                 </td>
             </tr>
+            <tr>
+                <td colspan="7" class="lstupd">
+                    <asp:Label ID="lblLastUpdated" runat="server" Visible="false"></asp:Label>
+                </td>
+            </tr>
         </table>
         <div id="forecast">
         </div>
         <asp:Label ID="ErrorMessage" runat="server" Visible="false"></asp:Label>
     </table>
 </div>
-
-
 <script type="text/javascript">
 
     function ShowForecastWeather(forecastHtml) {
@@ -140,8 +131,6 @@
 
     }
 </script>
-
-
 <style type="text/css">
     .header
     {
@@ -197,11 +186,16 @@
     }
     .pad
     {
-        padding-bottom:5px;
+        padding-bottom: 5px;
         width: 40px;
     }
     .colr
     {
         color: Red;
+    }
+    .lstupd
+    {
+        padding:5px 5px 0px 5px;
+        font-size:xx-small !Improtant;
     }
 </style>
