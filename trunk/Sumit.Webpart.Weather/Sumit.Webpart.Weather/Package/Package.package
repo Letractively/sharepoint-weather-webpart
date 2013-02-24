@@ -1,12 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <package xmlns:dm0="http://schemas.microsoft.com/VisualStudio/2008/DslTools/Core" dslVersion="1.0.0.0" Id="899d3bcd-8465-49f6-b186-5abbdfcec25f" solutionId="899d3bcd-8465-49f6-b186-5abbdfcec25f" resetWebServer="true" name="Sumit.Webpart.Weather" xmlns="http://schemas.microsoft.com/VisualStudio/2008/SharePointTools/PackageModel">
-  <assemblies>
-    <customAssembly location="Animaonline Weather API.dll" deploymentTarget="GlobalAssemblyCache" sourcePath="Third party Assembly\Animaonline Weather API.dll">
-      <safeControls>
-        <safeControl assemblyName="Animaonline.Weather.WeatherData" namespaceName="Animaonline.Weather.WeatherData" typeName="*" isSafeAgainstScript="true" />
-      </safeControls>
-    </customAssembly>
-  </assemblies>
   <features>
     <featureReference itemId="743a9c79-9535-43b1-962e-20ba2759d908" />
   </features>
