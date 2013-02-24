@@ -7,13 +7,27 @@ using Animaonline.Weather.WeatherData;
 using Animaonline.Weather;
 using Animaonline.Globals;
 using System.Web.Script.Serialization;
+using System.Net;
+using System.IO;
+using Sumit.Webpart.Weather.Entity;
+using System.Xml;
+using System.Xml.Linq;
 
 namespace Sumit.Webpart.Weather.Weather
 {
     public partial class WeatherUserControl : UserControl
     {
         #region Declarations
-
+        public string TempUnit
+        {
+            get
+            {
+                if (Weather._unitTemperature == Weather.TempUnitType.Celsius)
+                    return "c";
+                else
+                    return "f";
+            }
+        }
 
         #endregion
 
@@ -21,146 +35,182 @@ namespace Sumit.Webpart.Weather.Weather
         {
             if (!string.IsNullOrEmpty(Weather._cityName))
             {
-                GoogleWeatherData weather = new GoogleWeatherData();
+                string WOEID = GetWOEID(Weather._cityName.Replace(" ", "%20"));
 
-                try
+                if (!string.IsNullOrEmpty(WOEID))
                 {
-                    weather = GoogleWeatherAPI.GetWeather(LanguageCode.en_US, Weather._cityName);
+                    WeatherProfile Profile = GetWeatherDetails(WOEID);
+
+                    LocationName.Text = Profile.Location;
+                    lblTempValue.Text = Profile.Temperature + "&deg;" + TempUnit.ToUpper();
+                    Day.Text = "Today";
+                    Date.Text = DateTime.Today.ToShortDateString();
+
+                    if (Weather._updateInfo)
+                    {
+                        lblLastUpdated.Visible = true;
+                        lblLastUpdated.Text = Profile.PublishedDate;
+                    }
+
+                    if (Weather._condition)
+                    {
+                        ConditionText.Visible = true;
+                        ConditionValue.Visible = true;
+                        ConditionValue.Text = Profile.Condition;
+                    }
+                    if (Weather._conditionImage)
+                    {
+                        imgCond.Visible = true;
+                        imgCond.ImageUrl = Profile.ImagePath;
+                        imgCond.ImageAlign = ImageAlign.Middle;
+                    }
+                    if (Weather._high)
+                    {
+                        TempHighText.Visible = true;
+                        TempHighValue.Visible = true;
+                        TempHighValue.Text = Profile.HighTemperature;
+                    }
+                    if (Weather._low)
+                    {
+                        TempLowText.Visible = true;
+                        TempLowValue.Visible = true;
+                        TempLowValue.Text = Profile.LowTemperature;
+                    }
+                    if (Weather._humidity)
+                    {
+                        HumidityText.Visible = true;
+                        HumidityValue.Visible = true;
+
+                        HumidityValue.Text = Profile.Humidity;
+                    }
+                    if (Weather._wind)
+                    {
+                        WindText.Visible = true;
+                        WindValue.Visible = true;
+
+                        WindValue.Text = Profile.Wind + "km/h"; ;
+                    }
                 }
-                catch
+                else
                 {
                     Weather.ErrorMessage = "Cannot retrieve the City name, please check if the spelling is correct or try to add the state and country name";
                     DisplayError();
                 }
-
-                if (weather != null)
-                {
-                    if (CheckWeatherRetrieved(weather))
-                    {
-                        //display location
-                        LocationName.Text = weather.ForecastInformation.City;
-
-                        //display Temperature
-                        if (Weather._unitTemperature.ToString().Equals("Celsius"))
-                        {
-                            TempValue.Text = Convert.ToString((weather.CurrentConditions.Temperature).Celsius);
-                            TempUnit.Text = "&deg;C";
-                        }
-                        else
-                        {
-                            TempValue.Text = Convert.ToString((weather.CurrentConditions.Temperature).Fahrenheit);
-                            TempUnit.Text = "&deg;F";
-                        }
-
-                        //Display Day and Date
-                        Day.Text = "Today";
-                        Date.Text = DateTime.Today.ToShortDateString();
-
-                        if (Weather._condition)
-                        {
-                            ConditionText.Visible = true;
-                            ConditionValue.Visible = true;
-                            ConditionValue.Text = weather.CurrentConditions.Condition;
-                        }
-                        if (Weather._conditionImage)
-                        {
-                            imgCond.Visible = true;
-                            imgCond.ImageUrl = "http://www.google.com/" + weather.CurrentConditions.Icon;
-                            imgCond.ImageAlign = ImageAlign.Middle;
-                        }
-                        if (Weather._high)
-                        {
-                            TempHighText.Visible = true;
-                            TempHighValue.Visible = true;
-
-                            if (Weather._unitTemperature.ToString().Equals("Celsius"))
-                            {
-                                TempHighValue.Text = Convert.ToString(weather.ForecastConditions[0].High.Celsius).Split('.')[0] + "&deg;C";
-                            }
-                            else
-                            {
-                                TempHighValue.Text = Convert.ToString(weather.ForecastConditions[0].High.Fahrenheit).Split('.')[0] + "&deg;F";
-                            }
-
-                        }
-                        if (Weather._low)
-                        {
-                            TempLowText.Visible = true;
-                            TempLowValue.Visible = true;
-
-                            if (Weather._unitTemperature.ToString().Equals("Celsius"))
-                            {
-                                TempLowValue.Text = Convert.ToString(weather.ForecastConditions[0].Low.Celsius).Split('.')[0] + "&deg;C";
-                            }
-                            else
-                            {
-                                TempLowValue.Text = Convert.ToString(weather.ForecastConditions[0].Low.Fahrenheit).Split('.')[0] + "&deg;F";
-                            }
-                        }
-                        if (Weather._humidity)
-                        {
-                            HumidityText.Visible = true;
-                            HumidityValue.Visible = true;
-
-                            HumidityValue.Text = weather.CurrentConditions.Humidity.ToLower().Remove(0, 10);
-                        }
-                        if (Weather._wind)
-                        {
-                            WindText.Visible = true;
-                            WindValue.Visible = true;
-
-                            WindValue.Text = weather.CurrentConditions.WindCondition.Remove(0, 6);
-                        }
-
-                        #region Forecast to be implementd
-
-                        //int forecastDays = Convert.ToInt32(Weather._forecast);
-
-                        //if (forecastDays > 0)
-                        //{
-                        //    string forecastHtml = string.Empty;
-                        //    for (int i = 1; i <= forecastDays; i++)
-                        //    {
-                        //        forecastHtml = forecastHtml + CreateForecastHtml(weather.ForecastConditions[i], i);
-                        //    }
-
-                        //    //Serialize string to pass to the javascript
-                        //    string serialized = (new JavaScriptSerializer()).Serialize(forecastHtml);
-                        //    serialized = serialized.Remove(0, 1);
-                        //    serialized = serialized.Remove(serialized.LastIndexOf('"'), 1);
-
-                        //    this.Page.ClientScript.RegisterStartupScript(this.GetType(), "ShowForecastWeather", "ShowForecastWeather('" + serialized + "');", true);
-
-                        //}
-                        #endregion
-                    }
-                }
-            }
-            else
-            {
-                Weather.ErrorMessage = "Cannot Auto retrieve the City name, please check your internet connection or Uncheck the Auto Location check box enter the enter location manually by editing the webpart";
-                DisplayError();
             }
         }
 
         /// <summary>
-        /// Checks if the weather has retrieved the data
+        /// Gets the Weather details from Yahoo API in XML Format
         /// </summary>
-        /// <param name="weather"></param>
+        /// <param name="WOEID"></param>
         /// <returns></returns>
-        private bool CheckWeatherRetrieved(GoogleWeatherData weather)
+        private WeatherProfile GetWeatherDetails(string WOEID)
         {
-            if (weather.CurrentConditions.Condition != null &&
-                weather.CurrentConditions.Humidity != null &&
-                weather.CurrentConditions.Temperature != null &&
-                weather.CurrentConditions.WindCondition != null)
+            XDocument Response = null;
+            WeatherProfile objProfile = new WeatherProfile();
+            string URL = string.Format("http://weather.yahooapis.com/forecastrss?w=" + WOEID + "&u=" + TempUnit);
+            bool forecast = false;
+
+            try
             {
-                return true;
+                Response = XDocument.Load(URL);
+
+                if (Response != null && Response.Root != null)
+                {
+                    XmlDocument weatherDetails = new XmlDocument();
+                    weatherDetails.LoadXml(Response.ToString());
+
+                    foreach (XmlNode objNode in weatherDetails.ChildNodes[0].ChildNodes[0])
+                    {
+                        if (objNode.Name.ToLower().Equals("yweather:location"))
+                        {
+                            foreach (XmlAttribute objAttribute in objNode.Attributes)
+                            {
+                                if (objAttribute.Name.ToLower().Equals("city")) { objProfile.Location = objAttribute.Value; }
+                                else if (objAttribute.Name.ToLower().Equals("region")) { objProfile.Location = objProfile.Location + ", " + objAttribute.Value; }
+                                else if (objAttribute.Name.ToLower().Equals("country")) { objProfile.Location = objProfile.Location + ", " + objAttribute.Value; }
+                            }
+                        }
+
+                        else if (objNode.Name.ToLower().Equals("yweather:atmosphere"))
+                        {
+                            foreach (XmlAttribute objAttribute in objNode.Attributes)
+                            {
+                                if (objAttribute.Name.ToLower().Equals("humidity")) { objProfile.Humidity = objAttribute.Value; break; }
+                            }
+                        }
+
+                        else if (objNode.Name.ToLower().Equals("yweather:wind"))
+                        {
+                            foreach (XmlAttribute objAttribute in objNode.Attributes)
+                            {
+                                if (objAttribute.Name.ToLower().Equals("speed")) { objProfile.Wind = objAttribute.Value; break; }
+                            }
+                        }
+
+                        if (objNode.Name.ToLower().Equals("item"))
+                        {
+                            foreach (XmlNode objItemNode in objNode.ChildNodes)
+                            {
+                                if (objItemNode.Name.ToLower().Equals("yweather:condition"))
+                                {
+                                    foreach (XmlAttribute objAttribute in objItemNode.Attributes)
+                                    {
+                                        if (objAttribute.Name.ToLower().Equals("text")) { objProfile.Condition = objAttribute.Value; }
+                                        else if (objAttribute.Name.ToLower().Equals("temp")) { objProfile.Temperature = objAttribute.Value; }
+                                        else if (objAttribute.Name.ToLower().Equals("code")) { objProfile.ImagePath = "http://l.yimg.com/a/i/us/we/52/" + objAttribute.Value + ".gif"; }
+                                    }
+                                }
+                                else if (objItemNode.Name.ToLower().Equals("pubdate"))
+                                {
+                                    objProfile.PublishedDate = "Last Updated: " + objItemNode.InnerText;
+                                }
+                                else if (objItemNode.Name.ToLower().Equals("yweather:forecast"))
+                                {
+                                    if (!forecast)
+                                    {
+                                        foreach (XmlAttribute objAttribute in objItemNode.Attributes)
+                                        {
+                                            if (objAttribute.Name.ToLower().Equals("low")) { objProfile.LowTemperature = objAttribute.Value; }
+                                            else if (objAttribute.Name.ToLower().Equals("high")) { objProfile.HighTemperature = objAttribute.Value; }
+                                        }
+                                        forecast = true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
-            else
+            catch (Exception ex)
             {
-                return false;
             }
+
+            return objProfile;
+        }
+
+
+        /// <summary>
+        /// Gets the WOEID using Yahoo Query Langague (YQL)
+        /// </summary>
+        /// <param name="CityName"></param>
+        /// <returns></returns>
+        private string GetWOEID(string CityName)
+        {
+            string WOEID = string.Empty;
+            string URL = String.Format("http://query.yahooapis.com/v1/public/yql?q=select%20woeid%20from%20geo.places%20where%20text%3D%22" + CityName + "%22&diagnostics=true");
+
+            WebRequest request = WebRequest.Create(URL) as HttpWebRequest;
+
+            using (HttpWebResponse response = request.GetResponse() as HttpWebResponse)
+            {
+                StreamReader reader = new StreamReader(response.GetResponseStream());
+                string retVal = reader.ReadToEnd();
+                if (retVal.Contains("<woeid>") && retVal.Contains("</woeid>"))
+                    WOEID = retVal.Substring(retVal.IndexOf("<woeid>") + 7, retVal.IndexOf("</woeid>") - (retVal.IndexOf("<woeid>") + 7));
+            }
+
+            return WOEID;
         }
 
         /// <summary>
@@ -173,104 +223,5 @@ namespace Sumit.Webpart.Weather.Weather
             ErrorMessage.ForeColor = System.Drawing.Color.Red;
             Weather.ErrorMessage = string.Empty;
         }
-
-        //private string CreateForecastHtml(ForecastCondition forecastCondition, int addDay)
-        //{
-        //    string lowTempC = forecastCondition.Low.Celsius.ToString().Split('.')[0] + "&deg;C";
-        //    string lowTempF = forecastCondition.Low.Fahrenheit.ToString().Split('.')[0] + "&deg;F";
-        //    string highTempC = forecastCondition.High.Celsius.ToString().Split('.')[0] + "&deg;C";
-        //    string highTempF = forecastCondition.High.Fahrenheit.ToString().Split('.')[0] + "&deg;F";
-
-        //    StringBuilder html = new StringBuilder();
-        //    html.Append("<table width=\"100%\" id=\"Forecast" + forecastCondition.Day + "\" class=\"seperator\">");
-        //    html.Append("<tr><td>");
-        //    html.Append("<table width=\"100%\">");
-        //    html.Append("<tr><td class=\"topRow\">");
-        //    //Displays Day
-        //    html.Append(forecastCondition.Day);
-        //    html.Append("</td></tr>");
-        //    html.Append("<tr><td class=\"bottomRow\">");
-        //    //displays Date
-        //    html.Append(DateTime.Today.AddDays(addDay).ToShortDateString());
-        //    html.Append("</td></tr></table></td>");
-        //    html.Append("<td>");
-
-        //    //Displays Condition Image
-        //    if (Weather._conditionImage)
-        //        html.Append("<img src=\"http://www.google.com/" + forecastCondition.Icon + "\" class=\"shdw\" />");
-        //    else
-        //        html.Append("<asp:Image runat=\"server\" Visible=\"false\" id=\"imgCond" + forecastCondition.Day + "\" CssClass=\"shdw\"/>");
-
-        //    html.Append("</td>");
-        //    html.Append("<td><table width=\"100%\"> <tr><td class=\"topRow\">");
-
-        //    //Displays Condition
-        //    if (Weather._condition)
-        //        html.Append("Condition");
-        //    else
-        //        html.Append("<asp:Label ID=\"ConditionText" + forecastCondition.Day + "\" runat=\"server\" Visible=\"false\" Text=\"Condition\"></asp:Label>");
-
-        //    html.Append("</td></tr>");
-        //    html.Append("<tr><td class=\"bottomRow\">");
-
-        //    //Displays Condition Value
-        //    if (Weather._condition)
-        //        html.Append(forecastCondition.Condition);
-        //    else
-        //        html.Append("<asp:Label ID=\"ConditionValue" + forecastCondition.Day + "\" runat=\"server\" Visible=\"false\"></asp:Label>");
-
-        //    html.Append("</td></tr></table></td>");
-        //    html.Append("<td><table width=\"100%\"><tr><td class=\"topRow\">");
-
-        //    //Displays High Temperature
-        //    if (Weather._high)
-        //        html.Append("High");
-        //    else
-        //        html.Append("<asp:Label ID=\"TempHighText" + forecastCondition.Day + "\" runat=\"server\" Visible=\"false\" Text=\"High\"></asp:Label>");
-
-        //    html.Append("</td></tr>");
-        //    html.Append("<tr>");
-        //    html.Append("<td class=\"bottomRow\" style=\"color: #880000 !important;\">");
-
-        //    //Displays High Temperature Value
-        //    if (Weather._high)
-        //    {
-        //        if (Weather._unitTemperature.ToString().Equals("Celsius"))
-        //            html.Append(highTempC);
-        //        else
-        //            html.Append(highTempF);
-        //    }
-        //    else
-        //        html.Append("<asp:Label ID=\"TempHighValue" + forecastCondition.Day + "\" runat=\"server\" Visible=\"false\"></asp:Label>");
-
-        //    html.Append("</td></tr></table></td>");
-        //    html.Append("<td><table width=\"100%\"><tr><td class=\"topRow\">");
-
-        //    //Displays Low Temperature
-        //    if (Weather._low)
-        //        html.Append("Low");
-        //    else
-        //        html.Append("<asp:Label ID=\"TempLowText" + forecastCondition.Day + "\" runat=\"server\" Visible=\"false\" Text=\"Low\"></asp:Label>");
-
-        //    html.Append("</td></tr>");
-        //    html.Append("<tr>");
-        //    html.Append("<td class=\"bottomRow\" style=\"color: #0034C3 !important;\">");
-
-        //    //Displays Low Temperature Value
-        //    if (Weather._low)
-        //    {
-        //        if (Weather._unitTemperature.ToString().Equals("Celsius"))
-        //            html.Append(lowTempC);
-        //        else
-        //            html.Append(lowTempF);
-        //    }
-        //    else
-        //        html.Append("<asp:Label ID=\"TempLowValue" + forecastCondition.Day + "\" runat=\"server\" Visible=\"false\"></asp:Label>");
-
-        //    html.Append("</td></tr></table></td>");
-        //    html.Append("</tr></table>");
-
-        //    return html.ToString();
-        //}
     }
 }

@@ -22,22 +22,22 @@ namespace Sumit.Webpart.Weather.Weather {
         protected global::System.Web.UI.WebControls.Label LocationName;
         
         /// <summary>
-        /// TempValue control.
+        /// lblTempValue control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Label TempValue;
+        protected global::System.Web.UI.WebControls.Label lblTempValue;
         
         /// <summary>
-        /// TempUnit control.
+        /// lblTempUnit control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Label TempUnit;
+        protected global::System.Web.UI.WebControls.Label lblTempUnit;
         
         /// <summary>
         /// Day control.
@@ -155,6 +155,15 @@ namespace Sumit.Webpart.Weather.Weather {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Label WindValue;
+        
+        /// <summary>
+        /// lblLastUpdated control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Label lblLastUpdated;
         
         /// <summary>
         /// ErrorMessage control.
