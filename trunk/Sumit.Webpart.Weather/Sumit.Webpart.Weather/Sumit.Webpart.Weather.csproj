@@ -89,9 +89,7 @@
       <DependentUpon>Feature1.feature</DependentUpon>
     </Content>
     <Content Include="Weather\Elements.xml" />
-    <Content Include="Weather\WeatherUserControl.ascx">
-      <SubType>ASPXCodeBehind</SubType>
-    </Content>
+    <Content Include="Weather\WeatherUserControl.ascx" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\SharePointTools\Microsoft.VisualStudio.SharePoint.targets" />
