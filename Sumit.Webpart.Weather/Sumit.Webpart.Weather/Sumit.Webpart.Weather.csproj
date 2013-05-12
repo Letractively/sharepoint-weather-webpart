@@ -53,6 +53,8 @@
     <Reference Include="Microsoft.SharePoint.Security" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Common\Enums.cs" />
+    <Compile Include="Entity\DisplayError.cs" />
     <Compile Include="Entity\WeatherProfile.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Weather\Weather.cs" />
