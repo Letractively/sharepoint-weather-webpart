@@ -1,14 +1,12 @@
 ﻿using System;
+using System.IO;
+using System.Net;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using System.Web.UI.WebControls.WebParts;
-using System.Text;
-using System.Web.Script.Serialization;
-using System.Net;
-using System.IO;
-using Sumit.Webpart.Weather.Entity;
 using System.Xml;
 using System.Xml.Linq;
+using Sumit.Webpart.Weather.Common;
+using Sumit.Webpart.Weather.Entity;
 
 namespace Sumit.Webpart.Weather.Weather
 {
@@ -19,20 +17,23 @@ namespace Sumit.Webpart.Weather.Weather
         {
             get
             {
-                if (Weather._unitTemperature == Weather.TempUnitType.Celsius)
+                if (_weatherProfile.UnitTemperature == Enums.TempUnitType.Celsius)
                     return "c";
                 else
                     return "f";
             }
         }
 
+        public WeatherProfile _weatherProfile { get; set; }
+        public DisplayError _displayError { get; set; }
+
         #endregion
 
         protected void Page_Load(object sender, EventArgs e)
         {
-            if (!string.IsNullOrEmpty(Weather._cityName))
+            if (!string.IsNullOrEmpty(_weatherProfile.CityName))
             {
-                string WOEID = GetWOEID(Weather._cityName.Replace(" ", "%20"));
+                string WOEID = GetWOEID(_weatherProfile.CityName.Replace(" ", "%20"));
 
                 if (!string.IsNullOrEmpty(WOEID))
                 {
@@ -43,44 +44,44 @@ namespace Sumit.Webpart.Weather.Weather
                     Day.Text = "Today";
                     Date.Text = DateTime.Today.ToShortDateString();
 
-                    if (Weather._updateInfo)
+                    if (_weatherProfile.isUpdateInfo)
                     {
                         lblLastUpdated.Visible = true;
                         lblLastUpdated.Text = Profile.PublishedDate;
                     }
 
-                    if (Weather._condition)
+                    if (_weatherProfile.isCondition)
                     {
                         ConditionText.Visible = true;
                         ConditionValue.Visible = true;
                         ConditionValue.Text = Profile.Condition;
                     }
-                    if (Weather._conditionImage)
+                    if (_weatherProfile.isConditionImage)
                     {
                         imgCond.Visible = true;
                         imgCond.ImageUrl = Profile.ImagePath;
                         imgCond.ImageAlign = ImageAlign.Middle;
                     }
-                    if (Weather._high)
+                    if (_weatherProfile.isHighTemperature)
                     {
                         TempHighText.Visible = true;
                         TempHighValue.Visible = true;
                         TempHighValue.Text = Profile.HighTemperature;
                     }
-                    if (Weather._low)
+                    if (_weatherProfile.isLowTemprature)
                     {
                         TempLowText.Visible = true;
                         TempLowValue.Visible = true;
                         TempLowValue.Text = Profile.LowTemperature;
                     }
-                    if (Weather._humidity)
+                    if (_weatherProfile.isHumidity)
                     {
                         HumidityText.Visible = true;
                         HumidityValue.Visible = true;
 
                         HumidityValue.Text = Profile.Humidity;
                     }
-                    if (Weather._wind)
+                    if (_weatherProfile.isWind)
                     {
                         WindText.Visible = true;
                         WindValue.Visible = true;
@@ -90,7 +91,7 @@ namespace Sumit.Webpart.Weather.Weather
                 }
                 else
                 {
-                    Weather.ErrorMessage = "Cannot retrieve the City name, please check if the spelling is correct or try to add the state and country name";
+                    _displayError.ErrorMessage = "Cannot retrieve the City name, please check if the spelling is correct or try to add the state and country name";
                     DisplayError();
                 }
             }
@@ -215,10 +216,10 @@ namespace Sumit.Webpart.Weather.Weather
         /// </summary>
         private void DisplayError()
         {
-            ErrorMessage.Text = Weather.ErrorMessage;
+            ErrorMessage.Text = _displayError.ErrorMessage;
             ErrorMessage.Visible = true;
             ErrorMessage.ForeColor = System.Drawing.Color.Red;
-            Weather.ErrorMessage = string.Empty;
+            _displayError.ErrorMessage = string.Empty;
         }
     }
 }

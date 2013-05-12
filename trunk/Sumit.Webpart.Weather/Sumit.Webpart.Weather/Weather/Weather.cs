@@ -4,11 +4,12 @@ using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using System.Web.UI.WebControls.WebParts;
-using Microsoft.SharePoint;
-using Microsoft.SharePoint.WebControls;
-using Microsoft.SharePoint.WebPartPages;
-using System.Xml.Linq;
 using System.Xml;
+using System.Xml.Linq;
+using Microsoft.SharePoint;
+using Microsoft.SharePoint.WebPartPages;
+using Sumit.Webpart.Weather.Common;
+using Sumit.Webpart.Weather.Entity;
 
 namespace Sumit.Webpart.Weather.Weather
 {
@@ -18,18 +19,9 @@ namespace Sumit.Webpart.Weather.Weather
         // Visual Studio might automatically update this path when you change the Visual Web Part project item.
         private const string _ascxPath = @"~/_CONTROLTEMPLATES/Sumit.Webpart.Weather/Weather/WeatherUserControl.ascx";
 
-
-        public enum TempUnitType
-        {
-            Celsius = 0,
-            Fahrenheit
-        };
-
-
         #region WebPart Properties
 
-
-        public static bool _autoLoc = true;
+        public bool _autoLoc = true;
         [WebBrowsable(true),
         WebDisplayName("Automatically Detect Location"),
         Personalizable(PersonalizationScope.Shared),
@@ -48,7 +40,7 @@ namespace Sumit.Webpart.Weather.Weather
             }
         }
 
-        public static string _cityName = "Agra, India";
+        public string _cityName = "Agra, India";
         [WebBrowsable(true),
         WebDisplayName("City , State , Country"),
         Personalizable(PersonalizationScope.Shared),
@@ -68,8 +60,7 @@ namespace Sumit.Webpart.Weather.Weather
         }
 
 
-
-        public static bool _condition = true;
+        public bool _condition = true;
         [WebBrowsable(true),
         WebDisplayName("Display Condition"),
         Personalizable(PersonalizationScope.Shared),
@@ -89,7 +80,7 @@ namespace Sumit.Webpart.Weather.Weather
         }
 
 
-        public static bool _conditionImage = true;
+        public bool _conditionImage = true;
         [WebBrowsable(true),
         WebDisplayName("Display Condition Image"),
         Personalizable(PersonalizationScope.Shared),
@@ -108,7 +99,7 @@ namespace Sumit.Webpart.Weather.Weather
             }
         }
 
-        public static bool _high = true;
+        public bool _high = true;
         [WebBrowsable(true),
         WebDisplayName("Display High Temperature"),
         Personalizable(PersonalizationScope.Shared),
@@ -127,7 +118,7 @@ namespace Sumit.Webpart.Weather.Weather
             }
         }
 
-        public static bool _low = true;
+        public bool _low = true;
         [WebBrowsable(true),
         WebDisplayName("Display Low Temperature"),
         Personalizable(PersonalizationScope.Shared),
@@ -146,14 +137,14 @@ namespace Sumit.Webpart.Weather.Weather
             }
         }
 
-        public static TempUnitType _unitTemperature = TempUnitType.Celsius;
+        public Enums.TempUnitType _unitTemperature = Enums.TempUnitType.Celsius;
         [WebBrowsable(true),
         WebDisplayName("Unit For Temperature"),
         Personalizable(PersonalizationScope.Shared),
         WebPartStorage(Storage.Shared),
         WebDescription("Select the temperature unit"),
         Category("Weather WebPart Settings")]
-        public TempUnitType UnitTemperature
+        public Enums.TempUnitType UnitTemperature
         {
             get
             {
@@ -165,7 +156,7 @@ namespace Sumit.Webpart.Weather.Weather
             }
         }
 
-        public static bool _humidity = false;
+        public bool _humidity = false;
         [WebBrowsable(true),
         WebDisplayName("Display Humidity"),
         Personalizable(PersonalizationScope.Shared),
@@ -184,7 +175,7 @@ namespace Sumit.Webpart.Weather.Weather
             }
         }
 
-        public static bool _wind = false;
+        public bool _wind = false;
         [WebBrowsable(true),
         WebDisplayName("Display Wind"),
         Personalizable(PersonalizationScope.Shared),
@@ -203,7 +194,7 @@ namespace Sumit.Webpart.Weather.Weather
             }
         }
 
-        public static bool _updateInfo = true;
+        public bool _updateInfo = true;
         [WebBrowsable(true),
         WebDisplayName("Show last update info"),
         Personalizable(PersonalizationScope.Shared),
@@ -222,9 +213,7 @@ namespace Sumit.Webpart.Weather.Weather
             }
         }
 
-        public static string ErrorMessage { get; set; }
-
-        public static bool IsError { get; set; }
+        public DisplayError LogError { get; set; }
 
         #endregion
 
@@ -233,29 +222,57 @@ namespace Sumit.Webpart.Weather.Weather
         {
             try
             {
-                IsError = false;
+                LogError = new DisplayError();
+                LogError.isError = false;
+
                 if (this.AutoLoc)
                 {
+                    //Save the City Value to SP DB
                     SaveAutoLoc();
                 }
 
+                //Get the weather profile from the properties entered
+                WeatherProfile _profile = GetWeatherProfile();
+
                 Control control = Page.LoadControl(_ascxPath);
+                ((WeatherUserControl)control)._weatherProfile = _profile;
+                ((WeatherUserControl)control)._displayError = LogError;
                 Controls.Add(control);
 
-                if (IsError && !string.IsNullOrEmpty(ErrorMessage))
+                //If any error occurs
+                if (LogError.isError && !string.IsNullOrEmpty(LogError.ErrorMessage))
                 {
                     Label Errorlbl = new Label();
-                    Errorlbl.Text = ErrorMessage;
+                    Errorlbl.Text = LogError.ErrorMessage;
                     Errorlbl.CssClass = "colr";
                     this.Controls.Add(Errorlbl);
-                    IsError = false;
-                    ErrorMessage = string.Empty;
+                    LogError.isError = false;
+                    LogError.ErrorMessage = string.Empty;
                 }
             }
             catch (Exception ex)
             {
                 throw (new SPException(ex.Message));
             }
+        }
+
+        /// <summary>
+        /// Gets the weather profile 
+        /// </summary>
+        /// <returns></returns>
+        private WeatherProfile GetWeatherProfile()
+        {
+            WeatherProfile _profile = new WeatherProfile();
+            _profile.CityName = this.CityName;
+            _profile.isCondition = this.Condition;
+            _profile.isConditionImage = this.ConditionImage;
+            _profile.isHighTemperature = this.High;
+            _profile.isHumidity = this.Humidity;
+            _profile.isLowTemprature = this.Low;
+            _profile.UnitTemperature = this.UnitTemperature;
+            _profile.isUpdateInfo = this.UpdateInfo;
+            _profile.isWind = this.Wind;
+            return _profile;
         }
 
         /// <summary>
@@ -281,7 +298,7 @@ namespace Sumit.Webpart.Weather.Weather
                             ((Sumit.Webpart.Weather.Weather.Weather)(objWebPart.WebBrowsableObject)).CityName = null;
                         else
                             ((Sumit.Webpart.Weather.Weather.Weather)(objWebPart.WebBrowsableObject)).CityName = Location[1] + " , " + Location[2];
-                        
+
                         mgr.SaveChanges(objWebPart);
                     }
                 }
@@ -306,11 +323,11 @@ namespace Sumit.Webpart.Weather.Weather
             }
             catch (Exception ex)
             {
-                ErrorMessage = "Could not retrieve location from http://api.hostip.info/ ";
-                IsError = true;
+                LogError.ErrorMessage = "Could not retrieve location from http://api.hostip.info/ ";
+                LogError.isError = true;
             }
-            
-            if(xDoc != null || xDoc.Root != null)
+
+            if (xDoc != null || xDoc.Root != null)
             {
                 XmlDocument xmlDoc = new XmlDocument();
                 xmlDoc.LoadXml(xDoc.ToString());
